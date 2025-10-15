@@ -1,0 +1,12 @@
+node_modules
+dist
+dist-ssr
+*.local
+.vscode
+.idea
+target
+src-tauri/target
+src-tauri/WixTools
+Cargo.lock
+package-lock.json
+
