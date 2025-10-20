@@ -1,15 +1,17 @@
-import { uint8ArrayToBase64 } from "@/utils/base64"
-import { useEffect } from "react"
-import { Barcode, Br, Cut, Image, Line, Printer, QRCode, Raw, render, Row, Text } from "react-thermal-printer"
+import { Barcode, Br, Cut, Image, Line, Printer, QRCode, Raw, Row, Text } from "react-thermal-printer"
+import { ThermalPrinter } from "@/components/ThermalPrinter"
 import type { PrinterCheckboxOptions } from "@/types/templates"
-import { alignCenterImage } from "@/utils/align-bit-image"
 
-// Function to get printer checkbox template
+/**
+ * Printer checkbox template for testing printer capabilities
+ * Dynamically renders selected printer features based on checkbox options
+ * @param options - Selected printer options to test
+ */
 export function getPrinterCheckboxTemplate(options?: PrinterCheckboxOptions) {
   const hasAnySelection = options && Object.values(options).some(val => val === true)
 
   return (
-    <Printer type="star" width={48} characterSet="pc437_usa">
+    <ThermalPrinter preset="star">
       <Raw data={Uint8Array.from([0x1B, 0x3f, 0x0a, 0x00])} />
       <Raw data={Uint8Array.from([0x1B, 0x32, 0x00])} />
       {/* Header */}
@@ -266,27 +268,7 @@ export function getPrinterCheckboxTemplate(options?: PrinterCheckboxOptions) {
       {options?.cutPartial && <Cut partial lineFeeds={3} />}
       {options?.cutFull && !options?.cutPartial && <Cut />}
       {!options?.cutPartial && !options?.cutFull && <Cut partial lineFeeds={3} />}
-    </Printer>
+    </ThermalPrinter>
   )
 }
-
-export function usePrinterCheckbox() {
-  useEffect(() => {
-    console.log('printer-checkbox hook initialized')
-  }, [])
-
-
-  const renderPrinterCheckbox = async (data?: PrinterCheckboxOptions): Promise<string> => {
-    const imageUrl = await alignCenterImage(data?.imageUrl || "")
-    const template = getPrinterCheckboxTemplate({ ...data, imageUrl: imageUrl || "" })
-    const uint8Array = await render(template)
-    const base64 = uint8ArrayToBase64(uint8Array)
-    return base64
-  }
-
-  return {
-    renderPrinterCheckbox,
-  }
-}
-
 

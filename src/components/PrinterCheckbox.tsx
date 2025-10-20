@@ -3,13 +3,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Checkbox } from "@/components/ui/checkbox"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { usePrint } from "@/hooks/usePrint"
+import { TEMPLATE_REGISTRY_IDS, usePrint } from "@/hooks/usePrint"
 import type { PrinterCheckboxOptions } from "@/types/templates"
 
 export function PrinterCheckbox() {
-  const { print } = usePrint()
+  const { print, isPrinting } = usePrint()
   const [options, setOptions] = useState<PrinterCheckboxOptions>({})
-  const [isPrinting, setIsPrinting] = useState(false)
   const [imageUrl, setImageUrl] = useState("https://res.cloudinary.com/dfyqylutr/image/upload/v1760557111/15825362_a7pzi7.png")
 
   const selectedCount = Object.values(options).filter(Boolean).length
@@ -48,13 +47,8 @@ export function PrinterCheckbox() {
   }
 
   const handlePrint = async () => {
-     setIsPrinting(true)
-     try {
-       await print('printer-checkbox', { ...options, imageUrl })
-     } finally {
-       setIsPrinting(false)
-     }
-   }
+    await print(TEMPLATE_REGISTRY_IDS.PRINTER_CHECKBOX, { ...options, imageUrl })
+  }
 
   const textStyleKeys: (keyof PrinterCheckboxOptions)[] = ['bold', 'doubleStrike', 'underline', 'invert', 'fontA', 'fontB', 'size1x1', 'size2x1', 'size1x2', 'size2x2']
   const alignmentKeys: (keyof PrinterCheckboxOptions)[] = ['alignLeft', 'alignCenter', 'alignRight']

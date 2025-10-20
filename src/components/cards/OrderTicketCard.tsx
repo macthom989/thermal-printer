@@ -1,6 +1,6 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { PrintButton } from "@/components/PrintButton"
-import { DEMO_ORDER_TICKET_DATA } from "@/constants/templates"
+import { DEMO_ORDER_TICKET_DATA } from "@/constants/mock-data"
 
 /**
  * Order Ticket Card

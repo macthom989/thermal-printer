@@ -1,11 +1,13 @@
-import React from "react"
-import { uint8ArrayToBase64 } from "@/utils/base64"
-import { useEffect } from "react"
-import { Br, Cut, Line, Printer, render, Text } from "react-thermal-printer"
-import { DEMO_ORDER_TICKET_DATA } from "@/constants/templates"
+import { DEMO_ORDER_TICKET_DATA } from "@/constants/mock-data"
 import type { OrderTicketData } from "@/types/templates"
+import React from "react"
+import { Br, Cut, Line, Text } from "react-thermal-printer"
+import { ThermalPrinter } from "@/components/ThermalPrinter"
 
-// Function to get order ticket template
+/**
+ * Order ticket template for kitchen/bar printing
+ * @param data - Order data including order number, table name, items, and timestamp
+ */
 export function getOrderTicketTemplate(data?: OrderTicketData) {
   const orderNumber = data?.orderNumber || DEMO_ORDER_TICKET_DATA.orderNumber
   const tableName = data?.tableName || DEMO_ORDER_TICKET_DATA.tableName
@@ -13,7 +15,7 @@ export function getOrderTicketTemplate(data?: OrderTicketData) {
   const timestamp = data?.timestamp || DEMO_ORDER_TICKET_DATA.timestamp
 
   return (
-    <Printer type="epson" width={48}>
+    <ThermalPrinter>
       {/* Header */}
       <Text align="center" bold size={{ width: 2, height: 2 }}>
         ORDER #{orderNumber}
@@ -50,24 +52,7 @@ export function getOrderTicketTemplate(data?: OrderTicketData) {
       <Text align="center">End of Order</Text>
 
       <Cut partial lineFeeds={3} />
-    </Printer>
+    </ThermalPrinter>
   )
 }
 
-// Custom hook for order ticket
-export function useOrderTicket() {
-  useEffect(() => {
-    console.log('order-ticket hook initialized')
-  }, [])
-
-  const renderOrderTicket = async (data?: OrderTicketData): Promise<string> => {
-    const template = getOrderTicketTemplate(data)
-    const uint8Array = await render(template)
-    const base64 = uint8ArrayToBase64(uint8Array)
-    return base64
-  }
-
-  return {
-    renderOrderTicket,
-  }
-}

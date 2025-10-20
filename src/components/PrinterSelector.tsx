@@ -2,14 +2,14 @@ import { Printer } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { usePrint } from "@/hooks/usePrint"
+import { TEMPLATE_REGISTRY_IDS, usePrint } from "@/hooks/usePrint"
 import { HARDCODED_PRINTER_NAME } from "@/constants/printer"
 
 export function PrinterSelector() {
-  const { print } = usePrint()
+  const { print, isPrinting } = usePrint()
 
   const handleTest = async () => {
-    await print("test-pattern")
+    await print(TEMPLATE_REGISTRY_IDS.TEST_PATTERN)
   }
 
   return (
@@ -30,9 +30,9 @@ export function PrinterSelector() {
             </Badge>
           </div>
 
-          <Button onClick={handleTest}>
+          <Button onClick={handleTest} disabled={isPrinting}>
             <Printer className="mr-2 h-4 w-4" />
-            Test Print
+            {isPrinting ? "Printing..." : "Test Print"}
           </Button>
         </div>
 

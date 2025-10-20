@@ -1,7 +1,7 @@
 import { Printer } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { usePrint } from "@/hooks/usePrint"
-import type { TemplateId, TemplateData } from "@/hooks/templates/registry"
+import type { TemplateId, TemplateData } from "@/hooks/usePrint"
 import type { ComponentProps } from "react"
 
 /**
@@ -20,7 +20,7 @@ interface PrintButtonProps<T extends TemplateId> {
 }
 
 /**
- * Reusable type-safe print button component
+ * Reusable type-safe print button component with loading state
  *
  * @example
  * // With data (type-safe)
@@ -46,16 +46,22 @@ export function PrintButton<T extends TemplateId>({
   className,
   showIcon = true,
 }: PrintButtonProps<T>) {
-  const { print } = usePrint()
+  const { print, isPrinting } = usePrint()
 
   const handleClick = async () => {
     await print(templateId, data)
   }
 
   return (
-    <Button onClick={handleClick} disabled={disabled} variant={variant} size={size} className={className}>
+    <Button 
+      onClick={handleClick} 
+      disabled={disabled || isPrinting} 
+      variant={variant} 
+      size={size} 
+      className={className}
+    >
       {showIcon && <Printer className="mr-2 h-4 w-4" />}
-      {label}
+      {isPrinting ? "Printing..." : label}
     </Button>
   )
 }
