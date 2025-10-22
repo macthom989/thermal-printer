@@ -1,32 +1,48 @@
-import { invoke } from "@tauri-apps/api/core"
-import { toast } from "sonner"
-import { render } from "react-thermal-printer"
-import { useState } from "react"
-import { uint8ArrayToBase64 } from "@/utils/base64"
 import { HARDCODED_PRINTER_NAME } from "@/constants/printer"
-import { getTestPatternTemplate } from "@/templates/testPattern"
-import { getOrderTicketTemplate } from "@/templates/orderTicket"
-import { getBasicReceiptTemplate } from "@/templates/basicReceipt"
-import { getPrinterCheckboxTemplate } from "@/templates/printerCheckbox"
+import { testAlignTemplate, testBeepTemplate, testBoldTemplate, testCashDrawerTemplate, testFontTemplate, testImageTemplate, testInvertTemplate, testItalicTemplate, testSizeTemplate, testStrikethroughTemplate, testUnderlineTemplate } from "@/templates/quick-test"
+import { tableTemplate } from "@/templates/table-template"
+import { testTemplate } from "@/templates/test-template"
+import type { TableData } from "@/types/templates"
+import { uint8ArrayToBase64 } from "@/utils/base64"
+import { invoke } from "@tauri-apps/api/core"
 import type { JSX } from "react"
-import type { BasicReceiptData, OrderTicketData, PrinterCheckboxOptions } from "@/types/templates"
+import { render } from "react-thermal-printer"
+import { toast } from "sonner"
 
 // Template Registry IDs
 export const TEMPLATE_REGISTRY_IDS = {
-  TEST_PATTERN: 'test-pattern',
-  BASIC_RECEIPT: 'basic-receipt',
-  ORDER_TICKET: 'order-ticket',
-  PRINTER_CHECKBOX: 'printer-checkbox',
+  TEST: 'test',
+  BEEP_SIGNAL: 'beep-signal',
+  TABLE: 'table',
+  TEXT_BOLD: 'text-bold',
+  TEXT_UNDERLINE: 'text-underline',
+  TEXT_ALIGN: 'text-align',
+  TEXT_ITALIC: 'text-italic',
+  TEXT_INVERT: 'text-invert',
+  TEXT_FONT: 'text-font',
+  TEXT_SIZE: 'text-size',
+  CASH_DRAWER: 'cash-drawer',
+  IMAGE: 'image',
+  STRIKE_THROUGH: 'strike-through',
 } as const
 
 export type TemplateId = typeof TEMPLATE_REGISTRY_IDS[keyof typeof TEMPLATE_REGISTRY_IDS]
 
 // Template Data Mapping - Ensures type safety between templateId and data
 export type TemplateData = {
-  [TEMPLATE_REGISTRY_IDS.TEST_PATTERN]: undefined
-  [TEMPLATE_REGISTRY_IDS.BASIC_RECEIPT]: BasicReceiptData
-  [TEMPLATE_REGISTRY_IDS.ORDER_TICKET]: OrderTicketData
-  [TEMPLATE_REGISTRY_IDS.PRINTER_CHECKBOX]: PrinterCheckboxOptions
+  [TEMPLATE_REGISTRY_IDS.TEST]: undefined
+  [TEMPLATE_REGISTRY_IDS.TABLE]: TableData
+  [TEMPLATE_REGISTRY_IDS.TEXT_BOLD]: undefined
+  [TEMPLATE_REGISTRY_IDS.TEXT_UNDERLINE]: undefined
+  [TEMPLATE_REGISTRY_IDS.TEXT_ALIGN]: undefined
+  [TEMPLATE_REGISTRY_IDS.TEXT_ITALIC]: undefined
+  [TEMPLATE_REGISTRY_IDS.TEXT_INVERT]: undefined
+  [TEMPLATE_REGISTRY_IDS.TEXT_FONT]: undefined
+  [TEMPLATE_REGISTRY_IDS.TEXT_SIZE]: undefined
+  [TEMPLATE_REGISTRY_IDS.BEEP_SIGNAL]: undefined
+  [TEMPLATE_REGISTRY_IDS.CASH_DRAWER]: undefined
+  [TEMPLATE_REGISTRY_IDS.IMAGE]: undefined
+  [TEMPLATE_REGISTRY_IDS.STRIKE_THROUGH]: string
 }
 
 // Template function type
@@ -37,93 +53,55 @@ type TemplateRegistry = {
   [K in TemplateId]: TemplateFunction<TemplateData[K]>
 }
 
-const TEMPLATE_FUNCTIONS: TemplateRegistry = {
-  [TEMPLATE_REGISTRY_IDS.TEST_PATTERN]: getTestPatternTemplate,
-  [TEMPLATE_REGISTRY_IDS.BASIC_RECEIPT]: getBasicReceiptTemplate,
-  [TEMPLATE_REGISTRY_IDS.ORDER_TICKET]: getOrderTicketTemplate,
-  [TEMPLATE_REGISTRY_IDS.PRINTER_CHECKBOX]: getPrinterCheckboxTemplate,
+const TEMPLATES: TemplateRegistry = {
+  [TEMPLATE_REGISTRY_IDS.TEST]: testTemplate,
+  [TEMPLATE_REGISTRY_IDS.TABLE]: tableTemplate,
+  [TEMPLATE_REGISTRY_IDS.BEEP_SIGNAL]: testBeepTemplate,
+  [TEMPLATE_REGISTRY_IDS.TEXT_BOLD]: testBoldTemplate,
+  [TEMPLATE_REGISTRY_IDS.TEXT_UNDERLINE]: testUnderlineTemplate,
+  [TEMPLATE_REGISTRY_IDS.TEXT_ALIGN]: testAlignTemplate,
+  [TEMPLATE_REGISTRY_IDS.TEXT_ITALIC]: testItalicTemplate,
+  [TEMPLATE_REGISTRY_IDS.TEXT_INVERT]: testInvertTemplate,
+  [TEMPLATE_REGISTRY_IDS.TEXT_FONT]: testFontTemplate,
+  [TEMPLATE_REGISTRY_IDS.TEXT_SIZE]: testSizeTemplate,
+  [TEMPLATE_REGISTRY_IDS.CASH_DRAWER]: testCashDrawerTemplate,
+  [TEMPLATE_REGISTRY_IDS.IMAGE]: testImageTemplate,
+  [TEMPLATE_REGISTRY_IDS.STRIKE_THROUGH]: testStrikethroughTemplate,
 }
 
-export const useGetTemplate = () => {
-  const getTemplate = async <T extends TemplateId>(templateId: T, data?: TemplateData[T]): Promise<string> => {
-    const templateFn = TEMPLATE_FUNCTIONS[templateId]
-    
-    if (!templateFn) {
-      throw new Error(`Template ${templateId} not supported`)
-    }
-    
-    // TypeScript now correctly infers the type relationship between templateId and data
-    const template = templateFn(data)
-    const uint8Array = await render(template)
-    return uint8ArrayToBase64(uint8Array)
+export const getTemplate = async <T extends TemplateId>(templateId: T, data?: TemplateData[T]): Promise<string> => {
+  const templateFn = TEMPLATES[templateId]
+
+  if (!templateFn) {
+    throw new Error(`Template ${templateId} not supported`)
   }
 
-  return {
-    getTemplate,
-  }
+  const template = templateFn(data)
+  const uint8Array = await render(template)
+  return uint8ArrayToBase64(uint8Array)
 }
 
-/**
- * Type-safe print hook with loading state
- * Provides a print function that ensures templateId and data types match
- *
- * @example
- * const { print, isPrinting } = usePrint()
- *
- * // Type-safe: data must match BasicReceiptData
- * await print('basic-receipt', {
- *   storeName: 'My Store',
- *   items: [...],
- *   total: 100
- * })
- *
- * // TypeScript error: wrong data type!
- * await print('basic-receipt', { orderNumber: '123' })
- */
-export function usePrint() {
-  const { getTemplate } = useGetTemplate()
-  const [isPrinting, setIsPrinting] = useState(false)
 
-  /**
-   * Type-safe print function
-   * Generic parameter T ensures data type matches templateId
-   */
+export const usePrint = () => {
   const print = async <T extends TemplateId>(templateId: T, data?: TemplateData[T]): Promise<void> => {
-    if (isPrinting) {
-      toast.warning("A print job is already in progress")
-      return
-    }
-
-    setIsPrinting(true)
     try {
-      // Get type-safe template function
       const template = await getTemplate(templateId, data)
-
-      // Send to printer via Tauri
       await invoke("print", {
         printerName: HARDCODED_PRINTER_NAME,
         templateBase64: template,
       })
-      
       toast.success(`Successfully printed ${templateId}`, {
         description: `Sent to ${HARDCODED_PRINTER_NAME}`,
       })
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error)
-      
       toast.error("Print Failed", {
         description: errorMessage,
       })
-      
       console.error(`Print error for ${templateId}:`, error)
       throw error
-    } finally {
-      setIsPrinting(false)
     }
   }
 
-  return {
-    print,
-    isPrinting,
-  }
+  return { print }
 }

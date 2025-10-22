@@ -18,18 +18,3 @@ export const DEFAULT_PRINTER_CONFIG = {
   type: "epson",
   width: 48,
 } as const satisfies Partial<PrinterProps>
-
-/**
- * Alternative printer configurations for specific use cases
- */
-export const PRINTER_CONFIGS = {
-  epson: {
-    type: "epson",
-    width: 48,
-  },
-  star: {
-    type: "star",
-    width: 48,
-    characterSet: "pc437_usa",
-  },
-} as const satisfies Record<string, Partial<PrinterProps>>

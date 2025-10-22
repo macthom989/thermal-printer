@@ -1,9 +1,9 @@
 import { Printer } from "lucide-react"
 import { Toaster } from "sonner"
-import { PrinterSelector } from "./components/PrinterSelector"
-import { TemplateList } from "./components/TemplateList"
-import { PrinterCheckbox } from "./components/PrinterCheckbox"
+import { PrinterSelector } from "./components/printer-selector"
+import { TemplateList } from "./components/template-list"
 import { Badge } from "@/components/ui/badge"
+import { QuickTest } from "./components/quick-test"
 
 export default function App() {
   return (
@@ -30,18 +30,14 @@ export default function App() {
             </div>
           </div>
 
-          {/* Printer Selector */}
-          <div className="mb-6">
+          <div className="flex flex-col gap-6">
             <PrinterSelector />
+            <TemplateList />
+            <QuickTest />
           </div>
 
-          {/* Template List */}
-          <TemplateList />
 
-          {/* Printer Options Tester */}
-          <div className="mt-6">
-            <PrinterCheckbox />
-          </div>
+
         </div>
       </div>
     </>

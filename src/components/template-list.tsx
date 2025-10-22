@@ -1,13 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { TestPatternCard } from "./cards/TestPatternCard"
-import { BasicReceiptCard } from "./cards/BasicReceiptCard"
-import { OrderTicketCard } from "./cards/OrderTicketCard"
+import { TestCard } from "./cards/test-card"
+import { TableCard } from "./cards/table-card"
 
-/**
- * Template List Component
- * Displays all available print templates as individual cards
- * Each card is responsible for fetching its own data
- */
 export function TemplateList() {
   return (
     <Card>
@@ -17,9 +11,8 @@ export function TemplateList() {
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-          <TestPatternCard />
-          <BasicReceiptCard />
-          <OrderTicketCard />
+          <TestCard />
+          <TableCard />
         </div>
       </CardContent>
     </Card>

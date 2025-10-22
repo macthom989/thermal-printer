@@ -1,28 +1,13 @@
 // Receipt types
-export interface ReceiptItem {
+export interface TableItem {
   name: string
   price: number
   quantity?: number
+  discount?: string
 }
 
-export interface BasicReceiptData {
-  storeName?: string
-  items?: ReceiptItem[]
-  total?: number
-}
-
-// Order types
-export interface OrderItem {
-  name: string
-  quantity: number
-  notes?: string
-}
-
-export interface OrderTicketData {
-  orderNumber?: string
-  tableName?: string
-  items?: OrderItem[]
-  timestamp?: Date
+export interface TableData {
+  items?: TableItem[]
 }
 
 // Printer Checkbox Options
