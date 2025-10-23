@@ -16,6 +16,7 @@ import {
 import { receiptTemplate } from "@/templates/receipt-template"
 import { tableTemplate } from "@/templates/table-template"
 import { testTemplate } from "@/templates/test-template"
+import type { IProcessedReceipt } from "@/components/quick-test"
 import type { TableData } from "@/types/templates"
 import { uint8ArrayToBase64 } from "@/utils/base64"
 import { invoke } from "@tauri-apps/api/core"
@@ -58,7 +59,7 @@ export type TemplateData = {
   [TEMPLATE_REGISTRY_IDS.BEEP_SIGNAL]: undefined
   [TEMPLATE_REGISTRY_IDS.CASH_DRAWER]: undefined
   [TEMPLATE_REGISTRY_IDS.IMAGE]: undefined
-  [TEMPLATE_REGISTRY_IDS.STRIKE_THROUGH]: string
+  [TEMPLATE_REGISTRY_IDS.STRIKE_THROUGH]: IProcessedReceipt | null
 }
 
 // Template function type

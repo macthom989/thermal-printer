@@ -2,7 +2,9 @@ import { TEMPLATE_REGISTRY_IDS } from "@/hooks/usePrint"
 import { useEffect, useState } from "react"
 import { PrintButton } from "./print-button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card"
+import { IReceipt, receipt } from "./cards/receipt-card"
 import { printDoubleColumnBase64 } from "@/utils/convert-strike-through"
+import * as htmlToImage from 'html-to-image';
 
 export const QuickTest = () => {
     return (
@@ -31,36 +33,101 @@ export const QuickTest = () => {
     )
 }
 
+export const captureHtmlAsPngBase64 = async (componentRef: React.RefObject<HTMLDivElement>): Promise<string> => {
+    if (!componentRef.current) {
+        throw new Error("Target element not found for image capture.");
+    }
 
-const PrintStrikethroughText = () => {
-    const [base64Data, setBase64Data] = useState<string | null>(null)
+    // html-to-image sẽ chụp và trả về Base64 PNG
+    const dataUrl = await htmlToImage.toPng(componentRef.current, {
+        cacheBust: true,
+    });
+    return dataUrl;
+};
 
-    useEffect(() => {
-        const fetchBase64 = async () => {
-            try {
-                const strikethroughPrice = "$300.000"
-                const result = await printDoubleColumnBase64(
-                    "Món hàng A nó rất là dài dài dài dài dài Món hàng A nó rất là dài dài dài dài dài Món hàng A nó rất là dài dài dài dài dài",
-                    strikethroughPrice,
-                    576,
-                )
-                setBase64Data(result)
-            } catch (error) {
-                console.error("Failed to convert double column text to Base64:", error)
-                setBase64Data(null)
+export interface IProcessedService {
+    name: string;
+    finalPriceFormatted: string;
+    // descriptionBase64 chứa ảnh PNG cho dòng mô tả/gạch ngang
+    descriptionBase64: string | null;
+}
+export interface IProcessedItem {
+    name: string;
+    services: IProcessedService[];
+}
+export interface IProcessedReceipt extends Omit<IReceipt, 'items'> {
+    items: IProcessedItem[];
+}
+
+export const transformReceiptForPrinting = async (receipt: IReceipt): Promise<IProcessedReceipt> => {
+    const processedItems: IProcessedItem[] = [];
+
+    for (const item of receipt.items || []) {
+        const processedServices: IProcessedService[] = [];
+
+        for (const service of item.services || []) {
+            let descriptionBase64: string | null = null;
+
+            const hasPriceDifference = service.price !== service.finalPrice;
+            const hasDescription = !!service.description;
+
+            if (hasDescription || (hasPriceDifference && service.price)) {
+                const descriptionText = service.description;
+                const strikethroughText = hasPriceDifference ? service.price?.toLocaleString('en-US', { style: 'currency', currency: 'USD' }) : undefined;
+
+                if (descriptionText || strikethroughText) {
+                    try {
+                        descriptionBase64 = await printDoubleColumnBase64(
+                            descriptionText,
+                            strikethroughText ?? "",
+                        );
+                    } catch (error) {
+                        descriptionBase64 = null;
+                    }
+                }
             }
+
+            processedServices.push({
+                name: service.name || '',
+                finalPriceFormatted: (service.finalPrice as number)?.toLocaleString('en-US', { style: 'currency', currency: 'USD' }),
+                descriptionBase64: descriptionBase64,
+            });
         }
-        fetchBase64()
-    }, [])
+        processedItems.push({
+            name: item.name || '',
+            services: processedServices,
+        });
+    }
+
+    return {
+        ...receipt,
+        items: processedItems,
+    };
+};
+const PrintStrikethroughText = () => {
+    const [processedReceipt, setProcessedReceipt] = useState<IProcessedReceipt | null>(null);
+    useEffect(() => {
+        const loadTemplateData = async () => {
+            try {
+                const processedData = await transformReceiptForPrinting(receipt);
+                setProcessedReceipt(processedData);
+            } catch (error) {
+                console.error("Failed to prepare complex print template:", error);
+            }
+        };
+        loadTemplateData();
+    }, []);
+    
+    console.log(processedReceipt);
 
     return (
         <PrintButton
             templateId={TEMPLATE_REGISTRY_IDS.STRIKE_THROUGH}
-            label="Print Double Column Strikethrough"
+            label={!processedReceipt ? "Loading..." : "Print Double Column Strikethrough (TEST)"}
             className="w-full"
             size="sm"
-            data={base64Data ?? undefined}
-            disabled={!base64Data}
+            data={processedReceipt}
+            disabled={!processedReceipt}
         />
     )
 }

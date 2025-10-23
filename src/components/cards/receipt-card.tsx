@@ -81,7 +81,7 @@ export interface IReceipt {
   signature?: IReceiptSignature | null
 }
 
-const receipt: IReceipt = {
+export const receipt: IReceipt = {
   business: {
     businessName: "Fastboy Coffee",
     phoneNumber: "+84123456789",
@@ -118,7 +118,7 @@ const receipt: IReceipt = {
         {
           name: "Deluxe Manicure #11",
           finalPrice: 1099,
-          description: null,
+          description: "Teste code e teste line",
           price: 1099,
         },
       ],
@@ -135,14 +135,14 @@ const receipt: IReceipt = {
         {
           name: "Deluxe Fill #15",
           finalPrice: 1725,
-          description: null,
+          description: "Teste code e te",
           price: 1725,
         },
         {
-          name: "mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm",
+          name: "Deluxe Fill #15",
           finalPrice: 888,
-          description: "mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm",
-          price: 888,
+          description: "Deluxe Fill #15",
+          price: 900,
         },
       ],
     },

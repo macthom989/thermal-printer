@@ -34,6 +34,7 @@ export function receiptTemplate(data?: IReceipt) {
       <Row left="Current Point: 248" right="Total Visit: 12" />
 
       <Line character="=" />
+      
     </ThermalPrinter>
   )
 }

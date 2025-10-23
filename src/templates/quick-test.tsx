@@ -8,11 +8,13 @@ import {
   TextUnderline1DotThick,
   TextUnderline2DotsThick,
 } from "@/components/thermal-printer.character"
-import { BeepSignal } from "@/components/thermal-printer.hardware"
+import { BeepSignal, InitLineSpacing } from "@/components/thermal-printer.hardware"
 import { BITMAP_FORMAT, ESC_POS, IMAGE_FORMAT } from "@/constants/escpos"
 import { DEFAULT_PRINTER_CONFIG } from "@/constants/printer"
 import { alignCenterImage } from "@/utils/align-bit-image"
-import { Cashdraw, Image, Printer, Raw, Row, Text } from "react-thermal-printer"
+import { Br, Cashdraw, Image, Printer, Raw, Row, Text } from "react-thermal-printer"
+import { IProcessedReceipt } from "@/components/quick-test"
+import { Fragment } from "react/jsx-runtime"
 
 export const testBoldTemplate = () => {
   return (
@@ -122,21 +124,20 @@ export const testImageTemplate = () => {
   )
 }
 
-export const testStrikethroughTemplate = (base64Image?: string) => {
-    const x = debug
+export const testStrikethroughTemplate = (data?: IProcessedReceipt | null) => {
   return (
     <ThermalPrinter {...DEFAULT_PRINTER_CONFIG}>
-      <Row
-        gap={6}
-        left={
-          <Text wordBreak="break-word">
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et
-            dolore magna aliqua.
-          </Text>
-        }
-        right={<Text align="right">$200.000</Text>}
-      />
-      {base64Image && <Image src={base64Image} />}
+      {data?.items.flatMap(item =>
+        item.services.map((service, index) => (
+          <Fragment key={index}>
+            {service.descriptionBase64 && <Raw data={Uint8Array.from(ESC_POS.FEED.setLineSpacing(24))} />}
+            <Row left={<Text wordBreak="break-word">{service.name}</Text>} right={<Text align="right">{service.finalPriceFormatted}</Text>} gap={6} />
+            {service.descriptionBase64 && <><Image src={service.descriptionBase64} /><InitLineSpacing /> </>}
+            <Br />
+          </Fragment>
+        ))
+      )}
+
     </ThermalPrinter>
   )
 }

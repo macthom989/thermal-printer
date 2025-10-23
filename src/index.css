@@ -115,7 +115,15 @@
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
   }
+}
+
+.styled-font-text {
+  font-family: 'Open Sans', sans-serif;
+  font-weight: 300; /* Light */
+  font-style: normal;
+  font-variation-settings: "wdth" 100; /* Điều khiển biến thể font */
 }
