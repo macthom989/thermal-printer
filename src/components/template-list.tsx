@@ -1,6 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { TestCard } from "./cards/test-card"
 import { TableCard } from "./cards/table-card"
+import { ReceiptCard } from "./cards/receipt-card"
 
 export function TemplateList() {
   return (
@@ -13,6 +14,7 @@ export function TemplateList() {
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
           <TestCard />
           <TableCard />
+          <ReceiptCard />
         </div>
       </CardContent>
     </Card>

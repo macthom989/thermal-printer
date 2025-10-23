@@ -23,20 +23,14 @@ export function PrintButton<T extends TemplateId>({
   disabled = false,
   className,
 }: PrintButtonProps<T>) {
-  const {print} = usePrint()
+  const { print } = usePrint()
 
   const handleClick = useCallback(async () => {
     await print(templateId, data)
-  }, [templateId, data])
+  }, [print, templateId, data])
 
   return (
-    <Button 
-      onClick={handleClick} 
-      disabled={disabled} 
-      variant={variant} 
-      size={size} 
-      className={className}
-    >
+    <Button onClick={handleClick} disabled={disabled} variant={variant} size={size} className={className}>
       {label}
     </Button>
   )

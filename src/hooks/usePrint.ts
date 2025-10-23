@@ -1,5 +1,19 @@
+import { IReceipt } from "@/components/cards/receipt-card"
 import { HARDCODED_PRINTER_NAME } from "@/constants/printer"
-import { testAlignTemplate, testBeepTemplate, testBoldTemplate, testCashDrawerTemplate, testFontTemplate, testImageTemplate, testInvertTemplate, testItalicTemplate, testSizeTemplate, testStrikethroughTemplate, testUnderlineTemplate } from "@/templates/quick-test"
+import {
+  testAlignTemplate,
+  testBeepTemplate,
+  testBoldTemplate,
+  testCashDrawerTemplate,
+  testFontTemplate,
+  testImageTemplate,
+  testInvertTemplate,
+  testItalicTemplate,
+  testSizeTemplate,
+  testStrikethroughTemplate,
+  testUnderlineTemplate,
+} from "@/templates/quick-test"
+import { receiptTemplate } from "@/templates/receipt-template"
 import { tableTemplate } from "@/templates/table-template"
 import { testTemplate } from "@/templates/test-template"
 import type { TableData } from "@/types/templates"
@@ -11,26 +25,28 @@ import { toast } from "sonner"
 
 // Template Registry IDs
 export const TEMPLATE_REGISTRY_IDS = {
-  TEST: 'test',
-  BEEP_SIGNAL: 'beep-signal',
-  TABLE: 'table',
-  TEXT_BOLD: 'text-bold',
-  TEXT_UNDERLINE: 'text-underline',
-  TEXT_ALIGN: 'text-align',
-  TEXT_ITALIC: 'text-italic',
-  TEXT_INVERT: 'text-invert',
-  TEXT_FONT: 'text-font',
-  TEXT_SIZE: 'text-size',
-  CASH_DRAWER: 'cash-drawer',
-  IMAGE: 'image',
-  STRIKE_THROUGH: 'strike-through',
+  TEST: "test",
+  RECEIPT: "receipt",
+  BEEP_SIGNAL: "beep-signal",
+  TABLE: "table",
+  TEXT_BOLD: "text-bold",
+  TEXT_UNDERLINE: "text-underline",
+  TEXT_ALIGN: "text-align",
+  TEXT_ITALIC: "text-italic",
+  TEXT_INVERT: "text-invert",
+  TEXT_FONT: "text-font",
+  TEXT_SIZE: "text-size",
+  CASH_DRAWER: "cash-drawer",
+  IMAGE: "image",
+  STRIKE_THROUGH: "strike-through",
 } as const
 
-export type TemplateId = typeof TEMPLATE_REGISTRY_IDS[keyof typeof TEMPLATE_REGISTRY_IDS]
+export type TemplateId = (typeof TEMPLATE_REGISTRY_IDS)[keyof typeof TEMPLATE_REGISTRY_IDS]
 
 // Template Data Mapping - Ensures type safety between templateId and data
 export type TemplateData = {
   [TEMPLATE_REGISTRY_IDS.TEST]: undefined
+  [TEMPLATE_REGISTRY_IDS.RECEIPT]: IReceipt
   [TEMPLATE_REGISTRY_IDS.TABLE]: TableData
   [TEMPLATE_REGISTRY_IDS.TEXT_BOLD]: undefined
   [TEMPLATE_REGISTRY_IDS.TEXT_UNDERLINE]: undefined
@@ -55,6 +71,7 @@ type TemplateRegistry = {
 
 const TEMPLATES: TemplateRegistry = {
   [TEMPLATE_REGISTRY_IDS.TEST]: testTemplate,
+  [TEMPLATE_REGISTRY_IDS.RECEIPT]: receiptTemplate,
   [TEMPLATE_REGISTRY_IDS.TABLE]: tableTemplate,
   [TEMPLATE_REGISTRY_IDS.BEEP_SIGNAL]: testBeepTemplate,
   [TEMPLATE_REGISTRY_IDS.TEXT_BOLD]: testBoldTemplate,
@@ -80,7 +97,6 @@ export const getTemplate = async <T extends TemplateId>(templateId: T, data?: Te
   const uint8Array = await render(template)
   return uint8ArrayToBase64(uint8Array)
 }
-
 
 export const usePrint = () => {
   const print = async <T extends TemplateId>(templateId: T, data?: TemplateData[T]): Promise<void> => {

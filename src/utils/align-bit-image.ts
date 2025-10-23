@@ -34,20 +34,25 @@ export async function imageUrlToBase64(url: string): Promise<string> {
 }
 
 /**
- * Align image to center without scaling
- * @param imageUrl - Image URL (http:// or data:image/...)
- * @param containerWidth - Container width in pixels (default: 576px ~= 48mm * 12 dots/mm)
- * @param options - Additional options
- * @returns Promise<string> - Base64 data URL of centered image
+ * Tải, căn giữa, và tùy chỉnh kích thước hình ảnh để in trên máy in ESC/POS (giấy 80mm).
+ * Đảm bảo ảnh không quá lớn so với giới hạn maxImageWidth.
+ *
+ * @param imageUrl URL của hình ảnh.
+ * @param containerWidth Độ rộng tối đa (dot) của vùng in (mặc định 576 dot cho giấy 80mm).
+ * @param maxImageWidth Độ rộng tối đa mong muốn cho ảnh (đảm bảo ảnh nhỏ vừa, mặc định 400 dot).
+ * @param options Tùy chọn tùy chỉnh: padding, màu nền, chất lượng.
+ * @returns Promise<string> Base64 Data URL của hình ảnh đã được căn giữa và scale.
  */
 export function alignCenterImage(
     imageUrl: string,
-    containerWidth: number = 576,
+    containerWidth: number = 576, 
+    maxImageWidth: number = 256,
     options: {
         backgroundColor?: string
         imageType?: "image/png" | "image/jpeg"
         quality?: number
         padding?: number
+        scaleUp?: boolean 
     } = {}
 ): Promise<string> {
     return new Promise(async (resolve, reject) => {
@@ -56,11 +61,10 @@ export function alignCenterImage(
             imageType = "image/png",
             quality = 1,
             padding = 0,
+            scaleUp = false,
         } = options
 
         const image = new Image()
-
-        // Enable CORS for external images
         image.crossOrigin = "anonymous"
 
         image.onerror = () => {
@@ -69,16 +73,40 @@ export function alignCenterImage(
 
         image.onload = () => {
             try {
-                // Use original image dimensions (no scaling)
-                const imageWidth = image.width
-                const imageHeight = image.height
+                // 1. Tính toán kích thước ảnh gốc và giới hạn
+                const originalWidth = image.width
+                const originalHeight = image.height
+                
+                // Độ rộng tối đa có sẵn cho ảnh:
+                // Chọn MIN(Giới hạn mong muốn, Container - Padding)
+                const effectiveMaxWidth = Math.min(maxImageWidth, containerWidth - padding * 2);
 
-                // Calculate canvas dimensions
-                // Width: use containerWidth or image width (whichever is larger for centering)
-                const canvasWidth = Math.max(containerWidth, imageWidth + padding * 2)
-                const canvasHeight = imageHeight + padding * 2
+                let finalImageWidth = originalWidth
+                let finalImageHeight = originalHeight
+                
+                // 2. Tính toán tỷ lệ Scale
+                const scaleFactor = effectiveMaxWidth / originalWidth
 
-                // Create canvas
+                // Điều kiện Scale: Cần thu nhỏ (Ảnh lớn hơn giới hạn)
+                if (scaleFactor < 1) {
+                    finalImageWidth = Math.round(originalWidth * scaleFactor)
+                    finalImageHeight = Math.round(originalHeight * scaleFactor)
+                } else if (scaleUp && scaleFactor > 1) {
+                    // Nếu cho phép phóng to và ảnh nhỏ hơn giới hạn
+                    finalImageWidth = Math.round(originalWidth * scaleFactor)
+                    finalImageHeight = Math.round(originalHeight * scaleFactor)
+                } else {
+                    // Nếu ảnh đã nhỏ hơn giới hạn và không phóng to, giữ nguyên kích thước gốc
+                    finalImageWidth = originalWidth;
+                    finalImageHeight = originalHeight;
+                }
+                
+                // --- Xử lý Canvas ---
+
+                // 3. Kích thước Canvas (Canvas vẫn bằng độ rộng giấy 576 dot)
+                const canvasWidth = containerWidth 
+                const canvasHeight = finalImageHeight + padding * 2
+
                 const canvas = document.createElement("canvas")
                 canvas.width = canvasWidth
                 canvas.height = canvasHeight
@@ -89,18 +117,24 @@ export function alignCenterImage(
                     return
                 }
 
-                // Fill background
+                // 4. Vẽ nền
                 context.fillStyle = backgroundColor
                 context.fillRect(0, 0, canvasWidth, canvasHeight)
 
-                // Calculate position to center image
-                const x = (canvasWidth - imageWidth) / 2
-                const y = padding
+                // 5. Tính toán vị trí để căn giữa ảnh (ảnh đã được scale)
+                const x = (canvasWidth - finalImageWidth) / 2 // Căn giữa ảnh đã scale
+                const y = padding 
 
-                // Draw image at original size, centered
-                context.drawImage(image, x, y, imageWidth, imageHeight)
+                // 6. Vẽ ảnh đã scale
+                context.drawImage(
+                    image, 
+                    x, 
+                    y, 
+                    finalImageWidth, 
+                    finalImageHeight 
+                )
 
-                // Convert to base64
+                // 7. Chuyển đổi sang base64
                 const dataUrl = canvas.toDataURL(imageType, quality)
                 resolve(dataUrl)
             } catch (error) {
@@ -108,7 +142,6 @@ export function alignCenterImage(
             }
         }
 
-        // Load image
         image.src = imageUrl
     })
 }
