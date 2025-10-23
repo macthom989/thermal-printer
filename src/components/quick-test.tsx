@@ -32,19 +32,6 @@ export const QuickTest = () => {
         </Card>
     )
 }
-
-export const captureHtmlAsPngBase64 = async (componentRef: React.RefObject<HTMLDivElement>): Promise<string> => {
-    if (!componentRef.current) {
-        throw new Error("Target element not found for image capture.");
-    }
-
-    // html-to-image sẽ chụp và trả về Base64 PNG
-    const dataUrl = await htmlToImage.toPng(componentRef.current, {
-        cacheBust: true,
-    });
-    return dataUrl;
-};
-
 export interface IProcessedService {
     name: string;
     finalPriceFormatted: string;
@@ -104,6 +91,7 @@ export const transformReceiptForPrinting = async (receipt: IReceipt): Promise<IP
         items: processedItems,
     };
 };
+
 const PrintStrikethroughText = () => {
     const [processedReceipt, setProcessedReceipt] = useState<IProcessedReceipt | null>(null);
     useEffect(() => {
@@ -118,12 +106,10 @@ const PrintStrikethroughText = () => {
         loadTemplateData();
     }, []);
     
-    console.log(processedReceipt);
-
     return (
         <PrintButton
             templateId={TEMPLATE_REGISTRY_IDS.STRIKE_THROUGH}
-            label={!processedReceipt ? "Loading..." : "Print Double Column Strikethrough (TEST)"}
+            label={"Print Double Column Strikethrough"}
             className="w-full"
             size="sm"
             data={processedReceipt}

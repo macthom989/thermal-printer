@@ -137,7 +137,6 @@ export const testStrikethroughTemplate = (data?: IProcessedReceipt | null) => {
           </Fragment>
         ))
       )}
-
     </ThermalPrinter>
   )
 }
